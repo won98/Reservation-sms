@@ -1,11 +1,13 @@
 const { Shop, sequelize, Reservation } = require("../models");
 const shortid = require("shortid");
 const jwt = require("../utils/jwt");
+const { multer, cloudFront } = require("../utils");
 
 module.exports = {
   Registration: async (req, res) => {
     try {
       const { shop_id, shop_num } = req.body;
+      let image = req.file.location;
       const shopid = shortid.generate();
       let token = jwt.createToken({
         id: shop_id,
@@ -18,6 +20,7 @@ module.exports = {
         id: shopid,
         shop_id: shop_id,
         shop_num: shop_num,
+        img: cloudFront.URL(image),
         shop_refreshtoken: rtoken,
       });
 

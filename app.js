@@ -31,39 +31,39 @@ app.use("/reservation", Router.ReservationRoute);
 //app.use("/message", Router.MessageRoute);
 
 //
-const job = setInterval(async () => {
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = ("0" + (date.getMonth() + 1)).slice(-2);
-  const day = ("0" + date.getDate()).slice(-2);
-  const dateStr = year + "-" + month + "-" + day;
-  console.log(dateStr.toLocaleString());
-  const row1 = await Reservation.findAll({
-    where: {
-      date: dateStr.toLocaleString(),
-      check: false,
-    },
-  });
-  // reservation
-  for (let i = 0; i < row1.length; i++) {
-    if (row1[i].check == false) {
-      let name = row1[i].user_name;
-      const shop = row1[i].shop_id;
-      const number = row1[i].number;
-      const send = await sms.Tomorrow({
-        name: name,
-        shop: shop,
-        number: number,
-      });
-    }
-    const row2 = await Reservation.update(
-      {
-        check: true,
-      },
-      { where: { date: dateStr.toLocaleString() } }
-    );
-  }
-}, 6000);
+// const job = setInterval(async () => {
+//   const date = new Date();
+//   const year = date.getFullYear();
+//   const month = ("0" + (date.getMonth() + 1)).slice(-2);
+//   const day = ("0" + date.getDate()).slice(-2);
+//   const dateStr = year + "-" + month + "-" + day;
+//   console.log(dateStr.toLocaleString());
+//   const row1 = await Reservation.findAll({
+//     where: {
+//       date: dateStr.toLocaleString(),
+//       check: false,
+//     },
+//   });
+//   // reservation
+//   for (let i = 0; i < row1.length; i++) {
+//     if (row1[i].check == false) {
+//       let name = row1[i].user_name;
+//       const shop = row1[i].shop_id;
+//       const number = row1[i].number;
+//       const send = await sms.Tomorrow({
+//         name: name,
+//         shop: shop,
+//         number: number,
+//       });
+//     }
+//     const row2 = await Reservation.update(
+//       {
+//         check: true,
+//       },
+//       { where: { date: dateStr.toLocaleString() } }
+//     );
+//   }
+// }, 6000);
 
 // const job = setInterval(() => {
 //   send.Tomorrow();

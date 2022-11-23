@@ -7,7 +7,6 @@ module.exports = {
     const token = jwt.sign(
       {
         id: payload.id,
-        number: payload.number,
       },
       ACCESS_KEY,
       {

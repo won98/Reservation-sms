@@ -8,14 +8,6 @@ const Router = require("./router");
 const { sequelize, Reservation } = require("./models");
 const sms = require("./utils/Sms");
 const test = require("./controller/Reservation");
-sequelize
-  .sync({ force: false })
-  .then(() => {
-    console.log("OK");
-  })
-  .catch((err) => {
-    console.log(err);
-  });
 
 app.use(cors());
 app.use(helmet());
@@ -68,7 +60,24 @@ app.use("/reservation", Router.ReservationRoute);
 // const job = setInterval(() => {
 //   send.Tomorrow();
 // }, 6000);
-app.listen(port, () => {
-  //job();
-  console.log(port, "실행");
-});
+
+const envLoad = async () => {
+  require("dotenv").config();
+};
+
+const start = async () => {
+  await app.listen(port, () => {});
+};
+
+const cloneDB = async () => {
+  sequelize
+    .sync({ force: false })
+    .then(() => {
+      console.log("OK");
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+module.exports = { start, cloneDB, envLoad };

@@ -3,85 +3,56 @@ const jwt = require("../utils/jwt");
 //const bcrypt = require("bcrypt");
 const shortid = require("shortid");
 const hashpw = require("../utils/hash");
+const svc = require("../service");
 require("dotenv").config();
 
 module.exports = {
   Signup: async (req, res) => {
     try {
-      let { name, email, user_id, passwd, number } = req.body;
-      let hash = hashpw.Hash(passwd);
-      const usertId = shortid.generate();
-      let token = jwt.createToken({
-        id: usertId,
-        user_id: user_id,
-      });
-      let rtoken = jwt.refreshtoken({
-        id: usertId,
-      });
-      if (user_id == undefined || email == undefined) {
-        throw { code: 1 };
+      if (req.body.user_id == undefined || req.body.email == undefined) {
+        throw err;
       }
-      const tx = await sequelize.transaction();
-      const check = await User.findOne({
-        where: { user_id: user_id },
-        transaction: tx,
-      });
-      if (check) {
-        tx.rollback();
-        return res.status(200).json({
-          check: true,
-        });
-      }
-      const row = await User.create({
-        name: name,
-        email: email,
-        id: usertId,
-        user_id: user_id,
-        passwd: hash,
-        number: number,
-        refreshtoken: rtoken,
-      });
-      await tx.commit();
-      return res.status(200).json({
+      let reply = await svc.U.SignService(req.body);
+      let replyjson = {
         result: "success",
-        resuelt: row,
-        xauth: token,
-        rxauth: rtoken,
-      });
+        token: reply.token,
+        rtoken: reply.rtoken,
+      };
+      if (reply.check) {
+        replyjson = {
+          msg: "already singed",
+        };
+      }
+      if (reply.err) {
+        replyjson = {
+          error: reply.err,
+        };
+      }
+      return res.status(200).json(replyjson);
     } catch (err) {
       console.log(err);
+      return res.stats(200).json(err);
     }
   },
   Login: async (req, res) => {
     try {
-      const { user_id, passwd } = req.body;
-      let token;
-      let rtoken;
-      const rows = await User.findOne({
-        where: { user_id: user_id },
-      });
-      const compare = await hashpw.compare(passwd, rows.passwd);
+      let reply = await svc.U.LoginServer(req.body);
+      console.log(reply);
+      let replyjson = {
+        result: "success",
+        token: reply.token,
+        rtoken: reply.rtoken,
+      };
 
-      if (compare == true) {
-        token = jwt.createToken({
-          user_id: rows.user_id,
-          id: rows.user_id,
-        });
-        rtoken = jwt.refreshtoken({ id: rows.id });
-        await User.update(
-          {
-            refreshtoken: rtoken,
-          },
-          {
-            where: {
-              id: rows.id,
-            },
-          }
-        );
-        return res.status(200).json({ token: token, rtoken: rtoken });
-      } else throw { code: 9 };
+      if (reply.err) {
+        replyjson = {
+          err: reply.err,
+        };
+      }
+      return res.status(200).json(replyjson);
     } catch (err) {
       console.log(err);
+      return res.stats(200).json(err);
     }
   },
   CheckToken: async (req, res) => {

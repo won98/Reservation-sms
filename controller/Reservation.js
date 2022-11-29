@@ -10,66 +10,19 @@ const {
 const jwt = require("../utils/jwt");
 const shortid = require("shortid");
 const sms = require("../utils/Sms");
+const svc = require("../service");
 
 module.exports = {
   Reservation: async (req, res) => {
     try {
-      const { xauth, date, shop_id, item_id } = req.body;
-      const tx = await sequelize.transaction();
-      const shorid = shortid.generate();
-      let decode = jwt.verifyToken(xauth);
-      const row1 = await User.findOne(
-        {
-          where: { user_id: decode.id },
-        },
-        { transaction: tx }
-      );
-      const row2 = await Item.findOne(
-        {
-          where: { item_id: item_id },
-        },
-        {
-          transaction: tx,
-        }
-      );
-      const row3 = await Shop.findOne(
-        {
-          where: { shop_id: shop_id },
-        },
-        {
-          transaction: tx,
-        }
-      );
-      const row4 = await Reservation.create(
-        {
-          id: shorid,
-          user_id: decode.id,
-          user_name: row1.name,
-          number: row1.number,
-          date: date,
-          shop_id: shop_id,
-          item_id: row2.id,
-          check: false,
-        },
-        { transaction: tx }
-      );
-      const row5 = await Reservationinfo.create({
-        id: shorid,
-        user_id: decode.id,
-        user_name: row1.name,
-        number: row1.number,
-        date: date,
-        shop_id: row3.id,
-        item_id: item_id,
-      });
-      await tx.commit();
-      return res.status(200).json({
+      let reply = await svc.R.ReservationServer(req.body);
+      let replyjson = {
         result: "success",
-        resuelt: row4,
-        resuelt: row5,
-      });
+      };
+      return res.status(200).json(replyjson);
     } catch (err) {
       console.log(err);
+      return res.status(200).json(err);
     }
   },
   Registrationlist: async (req, res) => {
@@ -93,25 +46,15 @@ module.exports = {
   },
   Cancel: async (req, res) => {
     try {
-      let { xauth } = req.body;
-      let decoded = jwt.verifyToken(xauth);
-      let data = [decoded.id];
-      let query = `select * from item left outer join shop
-      on shop.id = item.shop_id 
-      inner join reservation on item.id = reservation.item_id where reservation.user_id = ?`;
-      const row = await sequelize.query(query, { replacements: data });
-      console.log(row[0][0].id);
-      const row2 = await Reservation.destroy({
-        where: {
-          id: row[0][0].id,
-        },
-      });
-      return res.status(200).json({
+      let reply = await svc.R.CancleServer(req.body);
+      console.log(reply);
+      let replyjson = {
         result: "success",
-        resuelt: row,
-      });
+      };
+      return res.status(200).json(replyjson);
     } catch (err) {
       console.log(err);
+      return res.stats(200).json(err);
     }
   },
 };
